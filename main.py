@@ -30,12 +30,12 @@ def init_db():
         # Добавляем колонки для времени обработки и размеров
         conn.execute("""
             CREATE TABLE IF NOT EXISTS history (
-                айди INTEGER PRIMARY KEY AUTOINCREMENT,
-                имя_файла TEXT,
-                время_обработки REAL,
-                ширина INTEGER,
-                высота INTEGER,
-                временная_метка DATETIME DEFAULT CURRENT_TIMESTAMP
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                filename TEXT,
+                process_time REAL,
+                width INTEGER,
+                height INTEGER,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         """)
 
@@ -65,13 +65,13 @@ async def forward(request: Request, image: UploadFile = File(None)):
         # Инференс
         results = request.app.state.model.predict(image_bytes)
         
-        processing_time = time.perf_counter() - start_time
+        process_time = time.perf_counter() - start_time
 
         # Сохраняем расширенную историю
         with sqlite3.connect(DB_PATH) as conn:
             conn.execute(
-                "INSERT INTO history (filename, processing_time, width, height) VALUES (?, ?, ?, ?)",
-                (image.filename, processing_time, width, height)
+                "INSERT INTO history (filename, process_time, width, height) VALUES (?, ?, ?, ?)",
+                (image.filename, process_time, width, height)
             )
         # Теперь вернем код ошибки 403 и сообщение: “модель не смогла обработать данные”
         return {
@@ -94,7 +94,7 @@ async def get_history():
 @app.get("/stats")
 async def get_stats():
     with sqlite3.connect(DB_PATH) as conn:
-        cursor = conn.execute("SELECT время_обработки, ширина, высота FROM history")
+        cursor = conn.execute("SELECT process_time, width, height FROM history")
         data = cursor.fetchall()
     
     if not data:
