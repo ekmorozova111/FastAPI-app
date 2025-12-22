@@ -50,7 +50,8 @@ app = FastAPI(lifespan=lifespan)
 
 # Здесь сделаем код ошибки 400 с текстом ‘bad request’
 @app.post("/forward")
-async def forward(request: Request, image: UploadFile = File(None)):
+# поправила обращение, а то не работал запрос загрузки изображения
+async def forward(image: UploadFile = File(...), request: Request = None):
     if image is None or not image.filename:
         raise HTTPException(status_code=400, detail="bad request")
 
