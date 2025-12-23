@@ -1,29 +1,31 @@
-# Подгружаем легкий образ питона котрый требует мало памяти 
-FROM python:3.10-bookworm
+# заменила букворм версию питона на слим 
+FROM python:3.10-slim
 
-# Используем не интеректативный образ Линукса
-ENV DEBIAN_FRONTEND=noninteractive
+ENV DEBIAN_FRONTEND=noninteractive \
+    # Отключила создание .pyc файлов и буферизацию логов
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-# Установим рабочую директорию 
 WORKDIR /app
 
-# Установим зависимости для Оупен сиви и Йоло 
+# установила системные зависимости  в одном слое с очисткой
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgl1-mesa-glx \
+    libgl1 \
     libglib2.0-0 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Возьмем список библиотек из файла requirements и установим 
+# установим  зависимостт (используем --no-cache-dir)
 COPY requirements.txt .
+
+# буду использовать CPU-версию PyTorch 
+RUN pip install --no-cache-dir torch torchvision --index-url download.pytorch.org
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Сделаем копию кода и модели 
+# копируем 
 COPY . .
 
-# Сделаем порт для рендора 
-EXPOSE 10000
+# Railway использует переменную PORT, динамически назначаемую сервисом
+EXPOSE ${PORT}
 
-# Запустим приложение при помощи  Uvicorn
-# У рендера дефолтный порт 10000
 CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-10000}"]
