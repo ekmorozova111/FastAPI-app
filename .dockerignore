@@ -1,5 +1,6 @@
+venv/
+.git/
 __pycache__/
-.git
-venv
 *.mp4
 *.jpg
+*.png
