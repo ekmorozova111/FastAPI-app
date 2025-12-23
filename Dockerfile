@@ -2,9 +2,9 @@
 FROM python:3.10-slim
 
 # делаем окружение из очень легкого линукса 
-ENV DEBIAN_FRONTEND=noninteractive \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /app
 
@@ -16,7 +16,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # устанавливаем легкий torch для процессора
-RUN pip install --no-cache-dir torch torchvision --index-url download.pytorch.org
+RUN pip install --no-cache-dir torch torchvision \
+    --index-url download.pytorch.org
 
 # копируем requirements.txt
 COPY requirements.txt .
